@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Simple Expense Tracker</title>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        /* (Your existing or expanded CSS styles go here) */
-    </style>
-
+    <title>Fast Budget Clone (Firebase)</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <header>
-        <h1>💵 Expense Tracker</h1>
+    <header class="app-header">
+        <h1>Fast Expense Tracker</h1>
+        <div class="balance-card">
+            <p>Total Spent (Today):</p>
+            <strong id="daily-total">$0.00</strong>
+        </div>
     </header>
 
-    <main>
-        <section id="add-expense">
-            <h2>Add New Expense</h2>
+    <main class="container">
+        <section class="card add-expense-card">
+            <h2>New Transaction</h2>
             <form id="expense-form">
-                <input type="text" id="expense-name" placeholder="Item Name (e.g., Groceries)" required>
-                <input type="number" id="expense-amount" placeholder="Amount (e.g., 25.50)" step="0.01" required>
-                <button type="submit">Add Expense</button>
+                <input type="text" id="expense-name" placeholder="Description (e.g., Coffee, Gas, Rent)" required>
+                <input type="number" id="expense-amount" placeholder="Amount" step="0.01" required>
+                <button type="submit" class="primary-btn">Record Expense</button>
             </form>
         </section>
 
-        <section id="expense-list-container">
-            <h2>Recent Expenses</h2>
+        <section class="card expense-list-card">
+            <h2>Recent History</h2>
             <ul id="expense-list">
-                </ul>
+                <li class="loading">Loading expenses...</li>
+            </ul>
         </section>
     </main>
 
     <script type="module">
         // ------------------------------------------------------------------
-        // Part A: Imports and Initialization
+        // Part A: Imports and Initialization (WITH YOUR KEYS)
         // ------------------------------------------------------------------
         
-        // --- 1. Import necessary functions for Firestore and data manipulation ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
         import { 
             getFirestore, 
@@ -53,35 +49,33 @@
             onSnapshot 
         } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
         
-        // --- 2. Your Firebase Configuration (Keep your actual keys) ---
+        // YOUR FIREBASE CONFIGURATION OBJECT IS NOW INSERTED HERE
         const firebaseConfig = {
-            apiKey: "AIzaSyDJ9xWoLd3K_52UNqRiX6xi7gQx0dloIBM",
+            apiKey: "AIzaSyDJ9xWoLd3K_52UNqRiX6xi7gQx0dloIBM", 
             authDomain: "expense-tracker-62853.firebaseapp.com",
-            projectId: "expense-tracker-62853",
+            projectId: "expense-tracker-62853", 
             storageBucket: "expense-tracker-62853.firebasestorage.app",
             messagingSenderId: "375801612134",
             appId: "1:375801612134:web:6cbcc5b3be3eba9b342aa7",
             measurementId: "G-LHLTT1G8N2"
         };
 
-        // --- 3. Initialize Firebase App and Firestore Database ---
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const expensesCollection = collection(db, "expenses"); // Collection reference
+        const expensesCollection = collection(db, "expenses"); 
         
         console.log("Firebase and Firestore initialized.");
 
-        // --- 4. Get HTML Element References ---
         const expenseForm = document.getElementById('expense-form');
         const expenseList = document.getElementById('expense-list');
+        const dailyTotalElement = document.getElementById('daily-total');
         
-
         // ------------------------------------------------------------------
         // Part B: Saving New Expenses (Form Submission Handler)
         // ------------------------------------------------------------------
         
         expenseForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Stop page refresh
+            e.preventDefault(); 
 
             const name = document.getElementById('expense-name').value;
             const amount = parseFloat(document.getElementById('expense-amount').value);
@@ -94,18 +88,15 @@
             const expenseData = {
                 name: name,
                 amount: amount,
-                timestamp: new Date(), // Use current date/time for sorting
+                timestamp: new Date(), 
             };
 
             try {
-                // Add the data to the 'expenses' collection
                 await addDoc(expensesCollection, expenseData);
-                
-                // Clear the form
                 expenseForm.reset();
-
             } catch (error) {
                 console.error("Error adding document: ", error);
+                alert("Permission Denied. Check your Firebase Security Rules!");
             }
         });
 
@@ -114,30 +105,48 @@
         // Part C: Reading and Listing Expenses (Real-Time Listener)
         // ------------------------------------------------------------------
         
-        // Create a query: get data from the 'expenses' collection, ordered by time (newest first)
+        const isToday = (someDate) => {
+            const today = new Date();
+            return someDate.getDate() == today.getDate() &&
+                someDate.getMonth() == today.getMonth() &&
+                someDate.getFullYear() == today.getFullYear();
+        }
+
         const q = query(expensesCollection, orderBy("timestamp", "desc"));
 
-        // Set up the real-time listener
         onSnapshot(q, (querySnapshot) => {
-            expenseList.innerHTML = ''; // Clear the list before adding new/updated items
+            expenseList.innerHTML = ''; 
+            let totalSpentToday = 0;
 
             querySnapshot.forEach((doc) => {
                 const expense = doc.data();
                 
-                // Format the timestamp
-                const date = expense.timestamp ? expense.timestamp.toDate().toLocaleDateString() : 'N/A';
+                const dateObj = expense.timestamp ? expense.timestamp.toDate() : new Date();
+                const formattedDate = dateObj.toLocaleDateString();
+
+                if (isToday(dateObj)) {
+                    totalSpentToday += expense.amount;
+                }
                 
-                // Create and populate the list item
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>${expense.name} (${date})</span>
-                    <strong>$${expense.amount.toFixed(2)}</strong>
+                    <div class="expense-icon">💰</div>
+                    <div class="expense-details">
+                        <span class="expense-name">${expense.name}</span>
+                        <span class="expense-date">${formattedDate}</span>
+                    </div>
+                    <strong class="expense-amount">-$${expense.amount.toFixed(2)}</strong>
                 `;
                 
                 expenseList.appendChild(li);
             });
-        });
 
+            dailyTotalElement.textContent = `$${totalSpentToday.toFixed(2)}`;
+
+            if (querySnapshot.empty) {
+                 expenseList.innerHTML = '<li class="no-expenses">No expenses recorded yet!</li>';
+            }
+        });
     </script>
 </body>
 </html>
