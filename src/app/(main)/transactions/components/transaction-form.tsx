@@ -26,6 +26,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { addTransaction } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const transactionFormSchema = z.object({
   description: z.string().min(2, {
@@ -40,6 +41,7 @@ const transactionFormSchema = z.object({
 type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
 export function TransactionForm({ onSuccess }: { onSuccess?: () => void }) {
+  const { toast } = useToast();
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
@@ -54,10 +56,17 @@ export function TransactionForm({ onSuccess }: { onSuccess?: () => void }) {
         date: values.date.toISOString()
     });
     if(result.success) {
-        alert('Transaction submitted!');
+        toast({
+          title: 'Transaction Added',
+          description: `Successfully added "${values.description}".`,
+        });
         onSuccess?.();
     } else {
-        alert(`Error: ${result.error}`)
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.error || 'Failed to add transaction.',
+        });
     }
   }
 

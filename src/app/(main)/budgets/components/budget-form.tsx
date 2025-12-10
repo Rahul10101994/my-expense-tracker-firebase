@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { addBudget } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const budgetFormSchema = z.object({
   name: z.string().min(2, {
@@ -36,6 +37,7 @@ export function BudgetForm({
 }: {
   onSuccess?: () => void;
 }) {
+  const { toast } = useToast();
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetFormSchema),
   });
@@ -43,10 +45,17 @@ export function BudgetForm({
   async function onSubmit(values: BudgetFormValues) {
     const result = await addBudget(values);
     if (result.success) {
-        alert('Budget submitted!');
+        toast({
+          title: 'Budget Added',
+          description: `Successfully added budget for "${values.name}".`,
+        });
         onSuccess?.();
     } else {
-        alert(`Error: ${result.error}`);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.error || 'Failed to add budget.',
+        })
     }
   }
 
