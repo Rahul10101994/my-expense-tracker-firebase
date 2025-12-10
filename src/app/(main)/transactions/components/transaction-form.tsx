@@ -38,11 +38,7 @@ const transactionFormSchema = z.object({
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
-export function TransactionForm({
-  onSuccess,
-}: {
-  onSuccess?: () => void;
-}) {
+export function TransactionForm() {
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
@@ -55,7 +51,6 @@ export function TransactionForm({
     console.log(values);
     // Here you would typically call a server action to save the data
     alert('Transaction submitted! Check the console for data.');
-    onSuccess?.();
   }
 
   return (

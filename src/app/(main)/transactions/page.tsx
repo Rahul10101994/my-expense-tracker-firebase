@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
@@ -17,13 +16,11 @@ import {
 import { TransactionForm } from './components/transaction-form';
 
 export default function TransactionsPage() {
-  const [isDialogOpen, setDialogOpen] = useState(false);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -38,7 +35,7 @@ export default function TransactionsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
-              <TransactionForm onSuccess={() => setDialogOpen(false)} />
+              <TransactionForm />
             </div>
           </DialogContent>
         </Dialog>
