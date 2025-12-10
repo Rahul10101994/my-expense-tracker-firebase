@@ -42,7 +42,7 @@ export default function BudgetsPage() {
                         spent: expensesByCategory[fb.name] || 0,
                         icon: base?.icon,
                     } as Budget;
-                });
+                }).filter(b => b.icon); // ensure icon exists
                 setBudgets(newBudgets);
             });
             return () => expensesUnsubscribe();
