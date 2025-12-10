@@ -102,7 +102,7 @@ export default function DashboardPage() {
               ${totalIncome.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              Calculated from your transactions.
             </p>
           </CardContent>
         </Card>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
               ${totalExpenses.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              +18.1% from last month
+              Calculated from your transactions.
             </p>
           </CardContent>
         </Card>
