@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { addBudget } from '@/app/actions';
 
 const budgetFormSchema = z.object({
   name: z.string().min(2, {
@@ -39,11 +40,14 @@ export function BudgetForm({
     resolver: zodResolver(budgetFormSchema),
   });
 
-  function onSubmit(values: BudgetFormValues) {
-    console.log(values);
-    // Here you would typically call a server action to save the data
-    alert('Budget submitted! Check the console for data.');
-    onSuccess?.();
+  async function onSubmit(values: BudgetFormValues) {
+    const result = await addBudget(values);
+    if (result.success) {
+        alert('Budget submitted!');
+        onSuccess?.();
+    } else {
+        alert(`Error: ${result.error}`);
+    }
   }
 
   return (

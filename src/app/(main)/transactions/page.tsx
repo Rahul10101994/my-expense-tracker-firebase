@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
-import { transactions } from '@/lib/data';
+import { getTransactions, addTransaction } from '@/app/actions';
+import type { Transaction } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function TransactionsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const fetchTransactions = async () => {
+    const newTransactions = await getTransactions();
+    const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
+    setTransactions(formattedTransactions);
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const handleSuccess = () => {
+    setDialogOpen(false);
+    fetchTransactions();
+  }
 
   return (
     <div className="space-y-6">
@@ -40,7 +57,7 @@ export default function TransactionsPage() {
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-10rem)]">
               <div className="py-4 pr-6">
-                <TransactionForm onSuccess={() => setDialogOpen(false)} />
+                <TransactionForm onSuccess={handleSuccess} />
               </div>
             </ScrollArea>
           </DialogContent>

@@ -1,6 +1,8 @@
 'use server';
 
 import { generateMonthlySummary, type GenerateMonthlySummaryInput } from '@/ai/flows/generate-monthly-summary';
+import { adminDb } from '@/lib/firebase-admin';
+import type { Transaction, Budget } from '@/lib/types';
 
 export async function generateSummaryAction(input: GenerateMonthlySummaryInput) {
   try {
@@ -10,4 +12,58 @@ export async function generateSummaryAction(input: GenerateMonthlySummaryInput) 
     console.error(error);
     return { success: false, error: 'Failed to generate summary.' };
   }
+}
+
+export async function addTransaction(transaction: Omit<Transaction, 'id'>) {
+  try {
+    const docRef = await adminDb.collection('transactions').add(transaction);
+    return { success: true, id: docRef.id };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Failed to add transaction.' };
+  }
+}
+
+export async function getTransactions(): Promise<Transaction[]> {
+  try {
+    const snapshot = await adminDb.collection('transactions').orderBy('date', 'desc').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function addBudget(budget: Omit<Budget, 'id' | 'spent' | 'icon'>) {
+    try {
+        const docRef = await adminDb.collection('budgets').add(budget);
+        return { success: true, id: docRef.id };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to add budget.' };
+    }
+}
+
+export async function getBudgets(): Promise<Budget[]> {
+    try {
+        const snapshot = await adminDb.collection('budgets').get();
+        // Note: This is a simplified version. In a real app, you'd calculate 'spent'
+        // by aggregating transactions for each budget category.
+        const baseBudgets = budgets; // from /lib/data
+        const firestoreBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Omit<Budget, 'icon' | 'spent'>));
+
+        const newBudgets = firestoreBudgets.map(fb => {
+            const base = baseBudgets.find(b => b.name === fb.name);
+            return {
+                ...fb,
+                spent: 0, // placeholder
+                icon: base?.icon,
+            }
+        });
+        
+        return newBudgets as Budget[];
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
 }

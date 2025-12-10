@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BudgetCard } from './components/budget-card';
-import { budgets } from '@/lib/data';
+import { getBudgets } from '@/app/actions';
+import type { Budget } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,21 @@ import { BudgetForm } from './components/budget-form';
 
 export default function BudgetsPage() {
     const [isDialogOpen, setDialogOpen] = useState(false);
+    const [budgets, setBudgets] = useState<Budget[]>([]);
+
+    const fetchBudgets = async () => {
+        const newBudgets = await getBudgets();
+        setBudgets(newBudgets);
+    }
+
+    useEffect(() => {
+        fetchBudgets();
+    }, []);
+
+    const handleSuccess = () => {
+        setDialogOpen(false);
+        fetchBudgets();
+    }
 
   return (
     <div className="space-y-6">
@@ -35,9 +51,9 @@ export default function BudgetsPage() {
                 <DialogDescription>
                     Set a spending limit for a new category.
                 </DialogDescription>
-                </DialogHeader>
+                </Header>
                 <div className="py-4">
-                    <BudgetForm onSuccess={() => setDialogOpen(false)} />
+                    <BudgetForm onSuccess={handleSuccess} />
                 </div>
             </DialogContent>
         </Dialog>

@@ -25,6 +25,7 @@ import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { addTransaction } from '@/app/actions';
 
 const transactionFormSchema = z.object({
   description: z.string().min(2, {
@@ -47,11 +48,17 @@ export function TransactionForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
 
-  function onSubmit(values: TransactionFormValues) {
-    console.log(values);
-    // Here you would typically call a server action to save the data
-    alert('Transaction submitted! Check the console for data.');
-    onSuccess?.();
+  async function onSubmit(values: TransactionFormValues) {
+    const result = await addTransaction({
+        ...values,
+        date: values.date.toISOString()
+    });
+    if(result.success) {
+        alert('Transaction submitted!');
+        onSuccess?.();
+    } else {
+        alert(`Error: ${result.error}`)
+    }
   }
 
   return (
