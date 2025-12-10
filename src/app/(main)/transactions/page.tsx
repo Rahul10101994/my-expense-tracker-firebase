@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { TransactionForm } from './components/transaction-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function TransactionsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -37,9 +38,11 @@ export default function TransactionsPage() {
                 Record a new income or expense.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <TransactionForm onSuccess={() => setDialogOpen(false)} />
-            </div>
+            <ScrollArea className="max-h-[calc(100vh-10rem)]">
+              <div className="py-4 pr-6">
+                <TransactionForm onSuccess={() => setDialogOpen(false)} />
+              </div>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
