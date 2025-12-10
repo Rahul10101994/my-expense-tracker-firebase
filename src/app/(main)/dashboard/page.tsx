@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../transactions/components/transaction-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, DataPoint } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
@@ -35,6 +35,7 @@ import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 export default function DashboardPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [overviewData, setOverviewData] = useState<DataPoint[]>([]);
 
   useEffect(() => {
     const q = query(collection(db, 'transactions'), orderBy('date', 'desc'));
@@ -45,6 +46,32 @@ export default function DashboardPage() {
       });
       const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
       setTransactions(formattedTransactions);
+
+      // Process data for overview chart
+      const monthlyData: DataPoint[] = [
+        { month: 'Jan', income: 0, expenses: 0 },
+        { month: 'Feb', income: 0, expenses: 0 },
+        { month: 'Mar', income: 0, expenses: 0 },
+        { month: 'Apr', income: 0, expenses: 0 },
+        { month: 'May', income: 0, expenses: 0 },
+        { month: 'Jun', income: 0, expenses: 0 },
+        { month: 'Jul', income: 0, expenses: 0 },
+        { month: 'Aug', income: 0, expenses: 0 },
+        { month: 'Sep', income: 0, expenses: 0 },
+        { month: 'Oct', income: 0, expenses: 0 },
+        { month: 'Nov', income: 0, expenses: 0 },
+        { month: 'Dec', income: 0, expenses: 0 },
+      ];
+
+      formattedTransactions.forEach(transaction => {
+        const month = new Date(transaction.date).getMonth();
+        if (transaction.type === 'income') {
+          monthlyData[month].income += transaction.amount;
+        } else {
+          monthlyData[month].expenses += transaction.amount;
+        }
+      });
+      setOverviewData(monthlyData);
     });
 
     return () => unsubscribe();
@@ -70,7 +97,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => setDialogOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Transaction
             </Button>
@@ -148,7 +175,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
-          <OverviewChart />
+          <OverviewChart data={overviewData} />
         </div>
         <div className="lg:col-span-2">
           <MonthlySummary />

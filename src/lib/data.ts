@@ -11,13 +11,3 @@ export const budgets: Budget[] = [
   { id: '5', name: 'Utilities', amount: 250, spent: 0, icon: Droplets },
   { id: '6', name: 'Subscriptions', amount: 50, spent: 0, icon: Bolt },
 ];
-
-export const overviewData: DataPoint[] = [
-    { month: 'Jan', income: 0, expenses: 0 },
-    { month: 'Feb', income: 0, expenses: 0 },
-    { month: 'Mar', income: 0, expenses: 0 },
-    { month: 'Apr', income: 0, expenses: 0 },
-    { month: 'May', income: 0, expenses: 0 },
-    { month: 'Jun', income: 0, expenses: 0 },
-    { month: 'Jul', income: 0, expenses: 0 },
-];
