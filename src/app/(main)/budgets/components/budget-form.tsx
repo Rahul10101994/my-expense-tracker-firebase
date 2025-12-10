@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { addBudget } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const budgetFormSchema = z.object({
   name: z.string().min(2, {
@@ -43,19 +44,20 @@ export function BudgetForm({
   });
 
   async function onSubmit(values: BudgetFormValues) {
-    const result = await addBudget(values);
-    if (result.success) {
-        toast({
-          title: 'Budget Added',
-          description: `Successfully added budget for "${values.name}".`,
-        });
-        onSuccess?.();
-    } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: result.error || 'Failed to add budget.',
-        })
+    try {
+      await addDoc(collection(db, 'budgets'), values);
+      toast({
+        title: 'Budget Added',
+        description: `Successfully added budget for "${values.name}".`,
+      });
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error adding budget:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to add budget.',
+      });
     }
   }
 

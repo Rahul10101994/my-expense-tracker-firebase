@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { OverviewChart } from './components/overview-chart';
 import { MonthlySummary } from './components/monthly-summary';
-import { getTransactions, addTransaction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,24 +28,30 @@ import {
 import { TransactionForm } from '../transactions/components/transaction-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Transaction } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+
 
 export default function DashboardPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const fetchTransactions = async () => {
-    const newTransactions = await getTransactions();
-    const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
-    setTransactions(formattedTransactions);
-  };
-
   useEffect(() => {
-    fetchTransactions();
+    const q = query(collection(db, 'transactions'), orderBy('date', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const newTransactions: Transaction[] = [];
+      querySnapshot.forEach((doc) => {
+        newTransactions.push({ id: doc.id, ...doc.data() } as Transaction);
+      });
+      const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
+      setTransactions(formattedTransactions);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleSuccess = () => {
     setDialogOpen(false);
-    fetchTransactions();
   }
 
   const totalIncome = transactions

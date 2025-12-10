@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BudgetCard } from './components/budget-card';
-import { getBudgets } from '@/app/actions';
-import type { Budget } from '@/lib/types';
+import type { Budget, Transaction } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -15,23 +14,45 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { BudgetForm } from './components/budget-form';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { budgets as defaultBudgets } from '@/lib/data';
 
 export default function BudgetsPage() {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [budgets, setBudgets] = useState<Budget[]>([]);
 
-    const fetchBudgets = async () => {
-        const newBudgets = await getBudgets();
-        setBudgets(newBudgets);
-    }
-
     useEffect(() => {
-        fetchBudgets();
+        const budgetsUnsubscribe = onSnapshot(collection(db, 'budgets'), (budgetsSnapshot) => {
+            const firestoreBudgets = budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Omit<Budget, 'icon' | 'spent'>));
+
+            const expensesUnsubscribe = onSnapshot(collection(db, 'transactions'), (transactionsSnapshot) => {
+                const expensesByCategory: Record<string, number> = {};
+                transactionsSnapshot.forEach(doc => {
+                    const transaction = doc.data() as Omit<Transaction, 'id'>;
+                    if (transaction.type === 'expense' && transaction.category) {
+                        expensesByCategory[transaction.category] = (expensesByCategory[transaction.category] || 0) + transaction.amount;
+                    }
+                });
+
+                const newBudgets = firestoreBudgets.map(fb => {
+                    const base = defaultBudgets.find(b => b.name === fb.name);
+                    return {
+                        ...fb,
+                        spent: expensesByCategory[fb.name] || 0,
+                        icon: base?.icon,
+                    } as Budget;
+                });
+                setBudgets(newBudgets);
+            });
+            return () => expensesUnsubscribe();
+        });
+
+        return () => budgetsUnsubscribe();
     }, []);
 
     const handleSuccess = () => {
         setDialogOpen(false);
-        fetchBudgets();
     }
 
   return (

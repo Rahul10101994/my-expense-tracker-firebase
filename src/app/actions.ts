@@ -1,9 +1,12 @@
 'use server';
 
 import { generateMonthlySummary, type GenerateMonthlySummaryInput } from '@/ai/flows/generate-monthly-summary';
-import { adminDb } from '@/lib/firebase-admin';
 import type { Transaction, Budget } from '@/lib/types';
 import { budgets } from '@/lib/data';
+
+// Note: The database interactions have been moved to client-side components 
+// to work directly with Firestore using the client SDK. These server actions 
+// are now simplified or can be removed if all data logic is handled on the client.
 
 export async function generateSummaryAction(input: GenerateMonthlySummaryInput) {
   try {
@@ -16,62 +19,25 @@ export async function generateSummaryAction(input: GenerateMonthlySummaryInput) 
 }
 
 export async function addTransaction(transaction: Omit<Transaction, 'id'>) {
-  try {
-    const docRef = await adminDb.collection('transactions').add(transaction);
-    return { success: true, id: docRef.id };
-  } catch (error) {
-    console.error('Error adding transaction:', error);
-    return { success: false, error: 'Failed to add transaction.' };
-  }
+  // This is now handled client-side. This function can be kept for other server-side logic or removed.
+  console.log('addTransaction server action called (can be removed)');
+  return { success: true };
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
-  try {
-    const snapshot = await adminDb.collection('transactions').orderBy('date', 'desc').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
-  } catch (error) {
-    console.error('Error getting transactions:', error);
-    return [];
-  }
+  // This is now handled client-side.
+  console.log('getTransactions server action called (can be removed)');
+  return [];
 }
 
 export async function addBudget(budget: Omit<Budget, 'id' | 'spent' | 'icon'>) {
-    try {
-        const docRef = await adminDb.collection('budgets').add(budget);
-        return { success: true, id: docRef.id };
-    } catch (error) {
-        console.error('Error adding budget:', error);
-        return { success: false, error: 'Failed to add budget.' };
-    }
+  // This is now handled client-side.
+  console.log('addBudget server action called (can be removed)');
+  return { success: true };
 }
 
 export async function getBudgets(): Promise<Budget[]> {
-    try {
-        const budgetsSnapshot = await adminDb.collection('budgets').get();
-        const transactionsSnapshot = await adminDb.collection('transactions').where('type', '==', 'expense').get();
-        
-        const expensesByCategory: Record<string, number> = {};
-        transactionsSnapshot.forEach(doc => {
-            const transaction = doc.data() as Omit<Transaction, 'id'>;
-            if (transaction.category) {
-                expensesByCategory[transaction.category] = (expensesByCategory[transaction.category] || 0) + transaction.amount;
-            }
-        });
-
-        const firestoreBudgets = budgetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Omit<Budget, 'icon' | 'spent'>));
-
-        const newBudgets = firestoreBudgets.map(fb => {
-            const base = budgets.find(b => b.name === fb.name);
-            return {
-                ...fb,
-                spent: expensesByCategory[fb.name] || 0,
-                icon: base?.icon,
-            }
-        });
-        
-        return newBudgets as Budget[];
-    } catch (error) {
-        console.error('Error getting budgets:', error);
-        return [];
-    }
+    // This is now handled client-side.
+    console.log('getBudgets server action called (can be removed)');
+    return [];
 }

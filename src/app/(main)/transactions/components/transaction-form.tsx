@@ -25,8 +25,10 @@ import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { addTransaction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
+
 
 const transactionFormSchema = z.object({
   description: z.string().min(2, {
@@ -51,22 +53,23 @@ export function TransactionForm({ onSuccess }: { onSuccess?: () => void }) {
   });
 
   async function onSubmit(values: TransactionFormValues) {
-    const result = await addTransaction({
+    try {
+      await addDoc(collection(db, 'transactions'), {
         ...values,
-        date: values.date.toISOString()
-    });
-    if(result.success) {
-        toast({
-          title: 'Transaction Added',
-          description: `Successfully added "${values.description}".`,
-        });
-        onSuccess?.();
-    } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: result.error || 'Failed to add transaction.',
-        });
+        date: values.date.toISOString(),
+      });
+      toast({
+        title: 'Transaction Added',
+        description: `Successfully added "${values.description}".`,
+      });
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to add transaction.',
+      });
     }
   }
 
