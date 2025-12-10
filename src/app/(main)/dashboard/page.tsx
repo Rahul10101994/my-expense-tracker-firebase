@@ -29,7 +29,7 @@ import { TransactionForm } from '../transactions/components/transaction-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Transaction, DataPoint } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 
 
 export default function DashboardPage() {
@@ -42,10 +42,11 @@ export default function DashboardPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const newTransactions: Transaction[] = [];
       querySnapshot.forEach((doc) => {
-        newTransactions.push({ id: doc.id, ...doc.data() } as Transaction);
+        const data = doc.data();
+        const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
+        newTransactions.push({ id: doc.id, ...data, date } as Transaction);
       });
-      const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
-      setTransactions(formattedTransactions);
+      setTransactions(newTransactions);
 
       // Process data for overview chart
       const monthlyData: DataPoint[] = [
@@ -63,7 +64,7 @@ export default function DashboardPage() {
         { month: 'Dec', income: 0, expenses: 0 },
       ];
 
-      formattedTransactions.forEach(transaction => {
+      newTransactions.forEach(transaction => {
         const month = new Date(transaction.date).getMonth();
         if (transaction.type === 'income') {
           monthlyData[month].income += transaction.amount;

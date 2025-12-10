@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { BudgetForm } from './components/budget-form';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
 import { budgets as defaultBudgets } from '@/lib/data';
 
 export default function BudgetsPage() {

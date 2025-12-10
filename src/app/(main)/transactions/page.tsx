@@ -17,7 +17,7 @@ import {
 import { TransactionForm } from './components/transaction-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 
 export default function TransactionsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -28,10 +28,11 @@ export default function TransactionsPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const newTransactions: Transaction[] = [];
       querySnapshot.forEach((doc) => {
-        newTransactions.push({ id: doc.id, ...doc.data() } as Transaction);
+        const data = doc.data();
+        const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
+        newTransactions.push({ id: doc.id, ...data, date } as Transaction);
       });
-      const formattedTransactions = newTransactions.map(t => ({...t, date: new Date(t.date).toISOString()}))
-      setTransactions(formattedTransactions);
+      setTransactions(newTransactions);
     });
 
     return () => unsubscribe();
