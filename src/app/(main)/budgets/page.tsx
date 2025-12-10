@@ -51,7 +51,7 @@ export default function BudgetsPage() {
                 <DialogDescription>
                     Set a spending limit for a new category.
                 </DialogDescription>
-                </Header>
+                </DialogHeader>
                 <div className="py-4">
                     <BudgetForm onSuccess={handleSuccess} />
                 </div>
