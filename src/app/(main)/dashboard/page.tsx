@@ -65,11 +65,13 @@ export default function DashboardPage() {
       ];
 
       newTransactions.forEach(transaction => {
-        const month = new Date(transaction.date).getMonth();
-        if (transaction.type === 'income') {
-          monthlyData[month].income += transaction.amount;
-        } else {
-          monthlyData[month].expenses += transaction.amount;
+        if (transaction.date) {
+            const month = new Date(transaction.date).getMonth();
+            if (transaction.type === 'income') {
+              monthlyData[month].income += transaction.amount;
+            } else {
+              monthlyData[month].expenses += transaction.amount;
+            }
         }
       });
       setOverviewData(monthlyData);
@@ -174,14 +176,14 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3">
-          <OverviewChart data={overviewData} />
-        </div>
-        <div className="lg:col-span-2">
-          <MonthlySummary />
-        </div>
+      <div className="grid grid-cols-1 gap-6">
+        <MonthlySummary />
       </div>
+
+      <div className="grid grid-cols-1">
+        <OverviewChart data={overviewData} />
+      </div>
+
     </div>
   );
 }
