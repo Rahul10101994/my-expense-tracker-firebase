@@ -26,10 +26,11 @@ import { Badge } from '@/components/ui/badge';
 import type { Transaction } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const CellActions = ({ transaction }: { transaction: Transaction }) => {
   const [isAlertOpen, setAlertOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleDelete = async () => {
     try {
